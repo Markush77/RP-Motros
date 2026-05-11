@@ -1,3 +1,5 @@
+import crypto from "node:crypto";
+
 const SESSION_COOKIE_NAME = "rp_admin_session";
 const SESSION_TTL_SECONDS = 60 * 60 * 12;
 
@@ -6,50 +8,12 @@ type SessionPayload = {
   exp: number;
 };
 
-const textEncoder = new TextEncoder();
-const textDecoder = new TextDecoder();
-
 export function getRequiredEnv(name: string): string {
   const value = process.env[name];
   if (!value) {
     throw new Error(`${name} is required`);
   }
   return value;
-}
-
-function toBase64UrlFromBytes(bytes: Uint8Array): string {
-  if (typeof Buffer !== "undefined") {
-    return Buffer.from(bytes).toString("base64url");
-  }
-
-  let binary = "";
-  bytes.forEach((b) => {
-    binary += String.fromCharCode(b);
-  });
-
-  return btoa(binary)
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/g, "");
-}
-
-function fromBase64UrlToBytes(value: string): Uint8Array {
-  if (typeof Buffer !== "undefined") {
-    return new Uint8Array(Buffer.from(value, "base64url"));
-  }
-
-  const base64 =
-    value.replace(/-/g, "+").replace(/_/g, "/") +
-    "===".slice((value.length + 3) % 4);
-
-  const binary = atob(base64);
-  const bytes = new Uint8Array(binary.length);
-
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i);
-  }
-
-  return bytes;
 }
 
 function timingSafeEqualString(a: string, b: string) {
@@ -61,27 +25,14 @@ function timingSafeEqualString(a: string, b: string) {
   return out === 0;
 }
 
-async function signValue(value: string, secret: string): Promise<string> {
-  const key = await crypto.subtle.importKey(
-    "raw",
-    textEncoder.encode(secret),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign"]
-  );
-
-  const signature = await crypto.subtle.sign(
-    "HMAC",
-    key,
-    textEncoder.encode(value)
-  );
-
-  return toBase64UrlFromBytes(new Uint8Array(signature));
+function signValue(value: string, secret: string): string {
+  return crypto
+    .createHmac("sha256", secret)
+    .update(value)
+    .digest("base64url");
 }
 
-export async function createSessionToken(
-  username: string
-): Promise<string> {
+export function createSessionToken(username: string): string {
   const secret = getRequiredEnv("AUTH_SECRET");
 
   const payload: SessionPayload = {
@@ -89,16 +40,18 @@ export async function createSessionToken(
     exp: Math.floor(Date.now() / 1000) + SESSION_TTL_SECONDS,
   };
 
-  const payloadBytes = textEncoder.encode(JSON.stringify(payload));
-  const encodedPayload = toBase64UrlFromBytes(payloadBytes);
-  const signature = await signValue(encodedPayload, secret);
+  const encodedPayload = Buffer.from(JSON.stringify(payload)).toString(
+    "base64url"
+  );
+
+  const signature = signValue(encodedPayload, secret);
 
   return `${encodedPayload}.${signature}`;
 }
 
-export async function verifySessionToken(
+export function verifySessionToken(
   token?: string | null
-): Promise<SessionPayload | null> {
+): SessionPayload | null {
   if (!token) return null;
 
   const secret = getRequiredEnv("AUTH_SECRET");
@@ -106,14 +59,16 @@ export async function verifySessionToken(
 
   if (!encodedPayload || !signature) return null;
 
-  const expected = await signValue(encodedPayload, secret);
+  const expected = signValue(encodedPayload, secret);
 
   if (!timingSafeEqualString(signature, expected)) return null;
 
   try {
-    const payloadText = textDecoder.decode(
-      fromBase64UrlToBytes(encodedPayload)
-    );
+    const payloadText = Buffer.from(
+      encodedPayload,
+      "base64url"
+    ).toString("utf-8");
+
     const payload = JSON.parse(payloadText) as SessionPayload;
 
     if (payload.exp < Math.floor(Date.now() / 1000)) return null;
