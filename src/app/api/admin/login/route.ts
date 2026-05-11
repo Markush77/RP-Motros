@@ -37,7 +37,6 @@ function isHtmlNavigationRequest(request: Request) {
 
 function buildSessionCookie(token: string) {
   const isProduction = process.env.NODE_ENV === "production";
-
   const parts = [
     `${getSessionCookieName()}=${token}`,
     "Path=/",
@@ -50,9 +49,7 @@ function buildSessionCookie(token: string) {
   return parts.join("; ");
 }
 
-async function parseCredentials(
-  request: Request
-): Promise<ParsedCredentials> {
+async function parseCredentials(request: Request): Promise<ParsedCredentials> {
   const contentType =
     request.headers.get("content-type")?.toLowerCase() ?? "";
 
@@ -62,62 +59,30 @@ async function parseCredentials(
         username?: unknown;
         password?: unknown;
       };
-
       return {
         username: String(payload.username ?? "").trim(),
         password: String(payload.password ?? "").trim(),
       };
     }
 
-    if (
-      contentType.includes("application/x-www-form-urlencoded") ||
-      contentType.includes("multipart/form-data")
-    ) {
-      const formData = await request.formData();
-
-      return {
-        username: String(formData.get("username") ?? "").trim(),
-        password: String(formData.get("password") ?? "").trim(),
-      };
-    }
-
-    const body = await request.text();
-    const params = new URLSearchParams(body);
-
+    const formData = await request.formData();
     return {
-      username: String(params.get("username") ?? "").trim(),
-      password: String(params.get("password") ?? "").trim(),
+      username: String(formData.get("username") ?? "").trim(),
+      password: String(formData.get("password") ?? "").trim(),
     };
   } catch (error) {
-    console.error("[AUTH] Error parseando body de login:", error);
-    throw new Error("No se pudo parsear el body de login");
+    console.error("[AUTH] Error parseando body:", error);
+    throw new Error("No se pudo parsear el body");
   }
 }
 
-function loginErrorResponse(
-  request: Request,
-  kind: "credenciales" | "bloqueado" | "bad_request" | "server_error",
-  status: number,
-  extra?: Record<string, unknown>
-) {
-  if (isHtmlNavigationRequest(request)) {
-    return new Response(null, {
-      status: 303,
-      headers: {
-        Location: `/admin/login?error=${kind}`,
-      },
-    });
-  }
-
-  return new Response(
-    JSON.stringify({ ok: false, error: kind, ...(extra ?? {}) }),
-    {
-      status,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }
-  );
+function redirectWithLocation(path: string) {
+  return new Response(null, {
+    status: 303,
+    headers: {
+      Location: path,
+    },
+  });
 }
 
 export async function POST(request: Request) {
@@ -129,9 +94,7 @@ export async function POST(request: Request) {
     const { username, password } = await parseCredentials(request);
 
     if (!username || !password) {
-      return loginErrorResponse(request, "bad_request", 400, {
-        message: "username y password son obligatorios",
-      });
+      return redirectWithLocation("/admin/login?error=bad_request");
     }
 
     const ip = getClientIp(request);
@@ -140,12 +103,7 @@ export async function POST(request: Request) {
       attempts.get(ip) ?? { failedCount: 0, blockedUntil: null };
 
     if (state.blockedUntil && state.blockedUntil > now) {
-      const retryAfterSec = Math.ceil(
-        (state.blockedUntil - now) / 1000
-      );
-      return loginErrorResponse(request, "bloqueado", 429, {
-        retryAfterSec,
-      });
+      return redirectWithLocation("/admin/login?error=bloqueado");
     }
 
     const isValid =
@@ -164,7 +122,7 @@ export async function POST(request: Request) {
         blockedUntil,
       });
 
-      return loginErrorResponse(request, "credenciales", 401);
+      return redirectWithLocation("/admin/login?error=credenciales");
     }
 
     attempts.set(ip, { failedCount: 0, blockedUntil: null });
@@ -172,38 +130,17 @@ export async function POST(request: Request) {
     const token = createSessionToken(username);
     const cookieHeader = buildSessionCookie(token);
 
-    if (isHtmlNavigationRequest(request)) {
-      const response = new Response(null, {
-        status: 303,
-        headers: {
-          Location: "/admin",
-        },
-      });
-
-      response.headers.append("Set-Cookie", cookieHeader);
-      return response;
-    }
-
-    const response = new Response(
-      JSON.stringify({ ok: true, message: "login_ok" }),
-      {
-        status: 200,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    const response = new Response(null, {
+      status: 303,
+      headers: {
+        Location: "/admin",
+      },
+    });
 
     response.headers.append("Set-Cookie", cookieHeader);
     return response;
   } catch (error) {
-    console.error("[AUTH] Error en POST /api/admin/login:", error);
-
-    return loginErrorResponse(request, "server_error", 500, {
-      message:
-        error instanceof Error
-          ? error.message
-          : "Error interno de autenticación",
-    });
+    console.error("[AUTH] Error en login:", error);
+    return redirectWithLocation("/admin/login?error=server_error");
   }
 }
