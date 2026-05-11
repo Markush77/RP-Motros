@@ -89,6 +89,10 @@ export async function POST(request: Request) {
   try {
     const adminUsername = getRequiredEnv("ADMIN_USERNAME");
     const adminPassword = getRequiredEnv("ADMIN_PASSWORD");
+
+    console.log("ADMIN_USERNAME:", adminUsername);
+console.log("ADMIN_PASSWORD:", adminPassword);
+
     getRequiredEnv("AUTH_SECRET");
 
     const { username, password } = await parseCredentials(request);
