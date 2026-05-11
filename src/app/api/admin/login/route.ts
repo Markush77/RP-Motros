@@ -89,10 +89,6 @@ export async function POST(request: Request) {
   try {
     const adminUsername = getRequiredEnv("ADMIN_USERNAME");
     const adminPassword = getRequiredEnv("ADMIN_PASSWORD");
-
-    console.log("ADMIN_USERNAME:", adminUsername);
-console.log("ADMIN_PASSWORD:", adminPassword);
-
     getRequiredEnv("AUTH_SECRET");
 
     const { username, password } = await parseCredentials(request);
@@ -123,16 +119,25 @@ console.log("ADMIN_PASSWORD:", adminPassword);
     attempts.set(ip, { failedCount: 0, blockedUntil: null });
 
     const token = await createSessionToken(username);
+    const cookieHeader = buildSessionCookie(token);
 
     if (isHtmlNavigationRequest(request)) {
-      const response = Response.redirect(new URL("/admin", request.url), 303);
-      response.headers.append("Set-Cookie", buildSessionCookie(token));
-      return response;
+      return new Response(null, {
+        status: 303,
+        headers: {
+          Location: "/admin",
+          "Set-Cookie": cookieHeader,
+        },
+      });
     }
 
-    const response = Response.json({ ok: true, message: "login_ok" }, { status: 200 });
-    response.headers.append("Set-Cookie", buildSessionCookie(token));
-    return response;
+    return new Response(JSON.stringify({ ok: true, message: "login_ok" }), {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json",
+        "Set-Cookie": cookieHeader,
+      },
+    });
   } catch (error) {
     console.error("[AUTH] Error en POST /api/admin/login:", error);
     return loginErrorResponse(request, "server_error", 500, {
