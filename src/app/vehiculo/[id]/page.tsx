@@ -9,12 +9,12 @@ export const dynamic = "force-dynamic";
 export default async function VehiclePage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: { id: string };
 }) {
-  const resolvedParams = await params;
-  const id = Number(resolvedParams.id);
+  // 👇 NO usamos Promise aquí
+  const id = parseInt(params.id, 10);
 
-  if (isNaN(id)) {
+  if (!id || isNaN(id)) {
     return notFound();
   }
 
