@@ -1,9 +1,11 @@
-import Image from "next/image";
+import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { vehicles, vehicleImages } from "@/db/schema";
 import { notFound } from "next/navigation";
+import VehicleGallery from "./VehicleGallery";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export default async function VehiclePage({
   params,
@@ -12,29 +14,27 @@ export default async function VehiclePage({
 }) {
   const id = Number(params.id);
 
-  if (!id || isNaN(id)) {
-    return notFound();
-  }
+  if (isNaN(id)) return notFound();
 
-  // 👇 Traemos TODOS los vehículos como hace el admin
-  const rows = await db.select().from(vehicles);
+  const vehicleResult = await db
+    .select()
+    .from(vehicles)
+    .where(eq(vehicles.id, id));
 
-  const vehicle = rows.find((v) => v.id === id);
+  const vehicle = vehicleResult[0];
 
-  if (!vehicle) {
-    return notFound();
-  }
+  if (!vehicle) return notFound();
 
   const images = await db
     .select()
     .from(vehicleImages)
-    .where((table) => table.vehicleId.eq(id));
+    .where(eq(vehicleImages.vehicleId, id));
 
   return (
-    <main className="min-h-screen bg-white px-6 py-16">
+    <main className="min-h-screen bg-gradient-to-b from-white to-slate-100 px-6 py-16">
       <div className="mx-auto max-w-6xl">
 
-        <h1 className="text-4xl font-extrabold mb-4">
+        <h1 className="text-4xl font-extrabold mb-2">
           {vehicle.name}
         </h1>
 
@@ -42,32 +42,10 @@ export default async function VehiclePage({
           USD {vehicle.priceUsd.toLocaleString("en-US")}
         </p>
 
-        <div className="relative h-[450px] w-full overflow-hidden rounded-3xl shadow-xl mb-8">
-          <Image
-            src={vehicle.imageUrl}
-            alt={vehicle.name}
-            fill
-            className="object-cover"
-          />
-        </div>
-
-        {images.length > 0 && (
-          <div className="grid grid-cols-3 gap-4">
-            {images.map((img) => (
-              <div
-                key={img.id}
-                className="relative h-32 w-full overflow-hidden rounded-xl shadow-md"
-              >
-                <Image
-                  src={img.imageUrl}
-                  alt="Imagen vehículo"
-                  fill
-                  className="object-cover"
-                />
-              </div>
-            ))}
-          </div>
-        )}
+        <VehicleGallery
+          mainImage={vehicle.imageUrl}
+          images={images}
+        />
 
       </div>
     </main>
