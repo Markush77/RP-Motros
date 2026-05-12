@@ -180,6 +180,7 @@ export default async function AdminPage() {
             height={200}
             className="rounded mb-3"
           />
+
           <p className="font-semibold">{car.name}</p>
 
           {/* ✅ AQUÍ SE MUESTRA EL ID */}
