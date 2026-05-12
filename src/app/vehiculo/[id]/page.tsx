@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
-import { vehicles, vehicleImages } from "@/db/schema";
+import { vehicles } from "@/db/schema";
 import { notFound } from "next/navigation";
 
 export const dynamic = "force-dynamic";
@@ -11,27 +11,21 @@ export default async function VehiclePage({
 }: {
   params: { id: string };
 }) {
-  const id = parseInt(params.id, 10);
+  const id = Number(params.id);
 
   if (!id || isNaN(id)) {
     return notFound();
   }
 
-  const vehicleResult = await db
+  const rows = await db
     .select()
-    .from(vehicles)
-    .where(eq(vehicles.id, id));
+    .from(vehicles);
 
-  const vehicle = vehicleResult[0];
+  const vehicle = rows.find((v) => v.id === id);
 
   if (!vehicle) {
     return notFound();
   }
-
-  const images = await db
-    .select()
-    .from(vehicleImages)
-    .where(eq(vehicleImages.vehicleId, id));
 
   return (
     <main className="min-h-screen bg-white px-6 py-16">
@@ -44,31 +38,13 @@ export default async function VehiclePage({
           USD {vehicle.priceUsd.toLocaleString("en-US")}
         </p>
 
-        <div className="grid gap-6 md:grid-cols-2">
-          <div className="relative h-[450px] w-full overflow-hidden rounded-3xl shadow-xl">
-            <Image
-              src={vehicle.imageUrl}
-              alt={vehicle.name}
-              fill
-              className="object-cover"
-            />
-          </div>
-
-          <div className="grid grid-cols-3 gap-4">
-            {images.map((img) => (
-              <div
-                key={img.id}
-                className="relative h-32 w-full overflow-hidden rounded-xl shadow-md"
-              >
-                <Image
-                  src={img.imageUrl}
-                  alt="Imagen vehículo"
-                  fill
-                  className="object-cover"
-                />
-              </div>
-            ))}
-          </div>
+        <div className="relative h-[450px] w-full overflow-hidden rounded-3xl shadow-xl">
+          <Image
+            src={vehicle.imageUrl}
+            alt={vehicle.name}
+            fill
+            className="object-cover"
+          />
         </div>
       </div>
     </main>
