@@ -7,26 +7,24 @@ import { notFound } from "next/navigation";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export default async function VehiclePage({
-  params,
-}: {
-  params: { id: string };
-}) {
-  const id = Number(params.id);
+export default async function VehiclePage(props: any) {
+  const resolvedParams = await props.params;
+  const id = parseInt(resolvedParams.id, 10);
 
   if (!id || isNaN(id)) {
     return notFound();
   }
 
-  const rows = await db
+  const result = await db
     .select()
-    .from(vehicles);
+    .from(vehicles)
+    .where(eq(vehicles.id, id));
 
-  const vehicle = rows.find((v) => v.id === id);
-
-  if (!vehicle) {
+  if (!result.length) {
     return notFound();
   }
+
+  const vehicle = result[0];
 
   return (
     <main className="min-h-screen bg-white px-6 py-16">
