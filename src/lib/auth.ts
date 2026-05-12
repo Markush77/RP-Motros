@@ -81,7 +81,7 @@ export function verifySessionToken(
 
 export async function getAdminSession() {
   const { cookies } = await import("next/headers");
-  const cookieStore = await cookies();
+  const cookieStore = cookies(); // ✅ FIX: sin await
   const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
   return verifySessionToken(token);
 }
