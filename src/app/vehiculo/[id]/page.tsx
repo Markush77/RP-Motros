@@ -11,7 +11,7 @@ export default async function VehiclePage({
 }: {
   params: { id: string };
 }) {
-  const id = parseInt(params.id, 10);
+  const id = Number(params.id);
 
   if (!id || isNaN(id)) {
     return notFound();
@@ -22,11 +22,11 @@ export default async function VehiclePage({
     .from(vehicles)
     .where(eq(vehicles.id, id));
 
-  const vehicle = result[0];
-
-  if (!vehicle) {
+  if (!result.length) {
     return notFound();
   }
+
+  const vehicle = result[0];
 
   const images = await db
     .select()
