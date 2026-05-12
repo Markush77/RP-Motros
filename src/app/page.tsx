@@ -76,20 +76,6 @@ export default async function HomePage() {
           className="object-cover scale-105"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-slate-950/90 via-slate-900/60 to-transparent" />
-
-        <div className="absolute inset-0 flex items-end">
-          <div className="mx-auto w-full max-w-7xl px-4 pb-20 text-white">
-            <p className="inline-block rounded-full border border-white/30 bg-white/10 px-4 py-1 text-xs uppercase tracking-[0.2em] backdrop-blur">
-              Confianza • Transparencia • Profesionalismo
-            </p>
-            <h1 className="mt-6 text-5xl font-extrabold leading-tight md:text-6xl">
-              Tu próximo auto está en RP Motors
-            </h1>
-            <p className="mt-5 max-w-2xl text-lg text-slate-200">
-              Atención personalizada y acompañamiento en todo el proceso.
-            </p>
-          </div>
-        </div>
       </section>
 
       {/* VEHÍCULOS */}
@@ -113,8 +99,12 @@ export default async function HomePage() {
         ) : (
           <div className="grid gap-10 md:grid-cols-3">
             {featuredCars.map((car) => (
-              <Link key={car.id} href={`/vehiculo/${car.id}`}>
-                <article className="cursor-pointer group overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-lg transition duration-500 hover:-translate-y-2 hover:shadow-2xl">
+              <Link
+                key={car.id}
+                href={`/vehiculo/${car.id}`}
+                className="block"
+              >
+                <div className="cursor-pointer group overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-lg transition duration-500 hover:-translate-y-2 hover:shadow-2xl">
 
                   <div className="relative h-60 w-full overflow-hidden">
                     <Image
@@ -152,7 +142,7 @@ export default async function HomePage() {
 
                   </div>
 
-                </article>
+                </div>
               </Link>
             ))}
           </div>
