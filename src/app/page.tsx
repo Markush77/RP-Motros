@@ -4,15 +4,6 @@ import { count, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { vehicles } from "@/db/schema";
 
-const testimonials = [
-  { author: "Ricardo López", text: "Excelente en todo, atención y vehículos.", rating: "★★★★★" },
-  { author: "Álvaro Lacalle", text: "Excelente experiencia, cuando cambie el auto vuelvo sin duda.", rating: "★★★★★" },
-  { author: "Reseña en Google", text: "Muy buena atención y trato claro durante la consulta.", rating: "★★★★★" },
-  { author: "Reseña en Google", text: "Proceso ágil, con buena disposición para resolver dudas.", rating: "★★★★☆" },
-  { author: "Reseña en Google", text: "Vehículo en buen estado y documentación explicada paso a paso.", rating: "★★★★★" },
-  { author: "Reseña en Google", text: "Atención personalizada y respuesta rápida por WhatsApp.", rating: "★★★★★" },
-];
-
 const statusStyles: Record<string, string> = {
   disponible: "bg-emerald-100 text-emerald-800 ring-1 ring-emerald-300",
   reservado: "bg-amber-100 text-amber-800 ring-1 ring-amber-300",
@@ -23,20 +14,10 @@ export async function generateMetadata(): Promise<Metadata> {
   const countResult = await db.select({ count: count() }).from(vehicles);
   const totalVehicles = countResult[0]?.count ?? 0;
 
-  const title = `RP Motors | ${totalVehicles} vehículos en stock`;
-  const description =
-    "Compraventa de automóviles usados en Montevideo. Fichas claras, contacto directo y atención personalizada.";
-
   return {
-    title,
-    description,
-    openGraph: {
-      title,
-      description,
-      type: "website",
-      locale: "es_UY",
-      siteName: "RP Motors",
-    },
+    title: `RP Motors | ${totalVehicles} vehículos en stock`,
+    description:
+      "Compraventa de automóviles usados en Montevideo. Atención profesional y contacto directo.",
   };
 }
 
@@ -48,25 +29,27 @@ export default async function HomePage() {
     .from(vehicles)
     .where(eq(vehicles.isFeatured, true))
     .orderBy(desc(vehicles.createdAt))
-    .limit(15);
+    .limit(12);
 
   return (
-    <main className="min-h-screen bg-white text-slate-900">
+    <main className="min-h-screen bg-gradient-to-b from-white via-slate-50 to-white text-slate-900">
 
-      {/* HEADER */}
-      <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/90 backdrop-blur">
-        <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-3">
+      {/* HEADER PREMIUM */}
+      <header className="sticky top-0 z-50 border-b border-slate-200/60 bg-white/80 backdrop-blur-lg shadow-sm">
+        <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-4 py-4">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
-              RP Motors
+            <p className="text-xs uppercase tracking-[0.25em] text-slate-500">
+              RP MOTORS
             </p>
-            <p className="text-sm font-bold">Compraventa de automóviles</p>
+            <p className="text-sm font-semibold">
+              Compraventa de automóviles
+            </p>
           </div>
 
           <div className="flex items-center gap-3">
             <a
               href="tel:+59822032070"
-              className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold transition hover:border-slate-900"
+              className="rounded-full border border-slate-300 px-5 py-2 text-sm font-semibold transition hover:border-slate-900"
             >
               Llamar
             </a>
@@ -74,7 +57,7 @@ export default async function HomePage() {
               href="https://wa.me/59898153089?text=Hola%20RP%20Motors"
               target="_blank"
               rel="noreferrer"
-              className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700"
+              className="rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white transition duration-300 hover:bg-slate-700 hover:scale-105"
             >
               WhatsApp
             </a>
@@ -82,94 +65,133 @@ export default async function HomePage() {
         </div>
       </header>
 
-      {/* HERO */}
-      <section className="relative h-[70vh] min-h-[500px]">
+      {/* HERO PREMIUM */}
+      <section className="relative h-[75vh] min-h-[550px] overflow-hidden">
         <Image
           src="https://images.pexels.com/photos/4895421/pexels-photo-4895421.jpeg"
           alt="Concesionaria"
           fill
           priority
-          className="object-cover"
+          className="object-cover scale-105"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-slate-950/85 via-slate-900/55 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-slate-950/90 via-slate-900/60 to-transparent" />
 
         <div className="absolute inset-0 flex items-end">
-          <div className="mx-auto w-full max-w-6xl px-4 pb-14 text-white">
-            <p className="inline-block rounded-full border border-white/30 bg-white/10 px-3 py-1 text-xs uppercase tracking-[0.18em]">
+          <div className="mx-auto w-full max-w-7xl px-4 pb-20 text-white">
+            <p className="inline-block rounded-full border border-white/30 bg-white/10 px-4 py-1 text-xs uppercase tracking-[0.2em] backdrop-blur">
               Confianza • Transparencia • Profesionalismo
             </p>
-            <h1 className="mt-4 text-5xl font-extrabold leading-tight">
+
+            <h1 className="mt-6 text-5xl font-extrabold leading-tight md:text-6xl">
               Tu próximo auto está en RP Motors
             </h1>
-            <p className="mt-4 text-lg text-slate-200">
-              Atención clara, inspección con mecánico y acompañamiento legal.
+
+            <p className="mt-5 max-w-2xl text-lg text-slate-200">
+              Atención personalizada, datos claros y acompañamiento en todo el proceso.
             </p>
           </div>
         </div>
       </section>
 
       {/* VEHÍCULOS */}
-      <section className="mx-auto w-full max-w-6xl px-4 py-16">
+      <section className="mx-auto w-full max-w-7xl px-4 py-20">
 
-        <div className="mx-auto w-16 h-1 bg-red-600 rounded-full mb-6"></div>
+        <div className="mx-auto mb-8 h-1 w-20 rounded-full bg-red-600"></div>
 
-        <div className="mb-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+        <div className="mb-12 text-center">
+          <p className="text-xs uppercase tracking-[0.25em] text-slate-500">
             Destacados
           </p>
-          <h2 className="mt-2 text-3xl font-extrabold">
+          <h2 className="mt-3 text-4xl font-extrabold">
             Vehículos seleccionados
           </h2>
         </div>
 
-        <div className="grid gap-8 md:grid-cols-3">
-          {featuredCars.map((car) => (
-            <article
-              key={car.id}
-              className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-md transition duration-300 hover:-translate-y-1 hover:shadow-2xl"
-            >
-              <div className="relative h-56 w-full">
-                <Image
-                  src={car.imageUrl}
-                  alt={car.name}
-                  fill
-                  className="object-cover"
-                />
-              </div>
-
-              <div className="p-6">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-extrabold">{car.name}</h3>
-                  <span
-                    className={`rounded-full px-2 py-1 text-xs font-bold uppercase ${statusStyles[car.status]}`}
-                  >
-                    {car.status}
-                  </span>
+        {featuredCars.length === 0 ? (
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-10 text-center text-sm text-slate-600">
+            Estamos actualizando el inventario.
+          </div>
+        ) : (
+          <div className="grid gap-10 md:grid-cols-3">
+            {featuredCars.map((car) => (
+              <article
+                key={car.id}
+                className="group overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-lg transition duration-500 hover:-translate-y-2 hover:shadow-2xl"
+              >
+                <div className="relative h-60 w-full overflow-hidden">
+                  <Image
+                    src={car.imageUrl}
+                    alt={car.name}
+                    fill
+                    className="object-cover transition duration-500 group-hover:scale-110"
+                  />
                 </div>
 
-                <p className="mt-2 text-3xl font-extrabold text-red-600 tracking-tight">
-                  USD {car.priceUsd.toLocaleString("en-US")}
-                </p>
+                <div className="p-7">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-extrabold leading-snug">
+                      {car.name}
+                    </h3>
 
-                <p className="mt-3 text-sm text-slate-600">
-                  {car.year} | {car.mileageKm.toLocaleString("es-UY")} Km
-                </p>
+                    <span
+                      className={`rounded-full px-3 py-1 text-xs font-bold uppercase ${statusStyles[car.status]}`}
+                    >
+                      {car.status}
+                    </span>
+                  </div>
 
-                <p className="mt-1 text-sm text-slate-500">
-                  Montevideo, Uruguay
-                </p>
+                  <p className="mt-3 text-4xl font-extrabold text-red-600 tracking-tight">
+                    USD {car.priceUsd.toLocaleString("en-US")}
+                  </p>
 
-                <a
-                  href="https://wa.me/59898153089?text=Hola%2C%20quiero%20informaci%C3%B3n%20sobre%20este%20veh%C3%ADculo"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="mt-6 inline-block rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white transition duration-300 hover:bg-slate-700 hover:scale-105"
-                >
-                  Solicitar ficha completa
-                </a>
-              </div>
-            </article>
-          ))}
+                  <p className="mt-4 text-sm text-slate-600">
+                    {car.year} | {car.mileageKm.toLocaleString("es-UY")} Km
+                  </p>
+
+                  <p className="mt-1 text-sm text-slate-500">
+                    Montevideo, Uruguay
+                  </p>
+
+                  <a
+                    href="https://wa.me/59898153089?text=Hola%2C%20quiero%20informaci%C3%B3n%20sobre%20este%20veh%C3%ADculo"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-6 inline-block rounded-full bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition duration-300 hover:bg-slate-700 hover:scale-105"
+                  >
+                    Solicitar ficha completa
+                  </a>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* CTA FINAL */}
+      <section className="mx-auto w-full max-w-7xl px-4 pb-24">
+        <div className="rounded-3xl bg-gradient-to-r from-slate-900 to-slate-700 p-10 text-white shadow-xl">
+          <h3 className="text-4xl font-extrabold">
+            Agendá tu visita hoy mismo
+          </h3>
+
+          <p className="mt-4 text-slate-200">
+            Av. Gral. Flores 3474, Montevideo
+          </p>
+
+          <div className="mt-8 flex gap-4">
+            <a
+              href="https://wa.me/59898153089"
+              className="rounded-full bg-red-600 px-6 py-3 font-bold transition hover:bg-red-500"
+            >
+              WhatsApp
+            </a>
+            <a
+              href="tel:+59822032070"
+              className="rounded-full border border-white px-6 py-3 font-bold transition hover:bg-white hover:text-slate-900"
+            >
+              Llamar ahora
+            </a>
+          </div>
         </div>
       </section>
 
