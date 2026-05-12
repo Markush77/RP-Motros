@@ -29,9 +29,8 @@ export default async function VehiclePage({
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-white to-slate-100 px-6 py-16">
+    <main className="min-h-screen bg-white px-6 py-16">
       <div className="mx-auto max-w-6xl">
-
         <h1 className="text-4xl font-extrabold mb-4">
           {vehicle.name}
         </h1>
@@ -40,7 +39,7 @@ export default async function VehiclePage({
           USD {vehicle.priceUsd.toLocaleString("en-US")}
         </p>
 
-        <div className="relative h-[500px] w-full overflow-hidden rounded-3xl shadow-xl">
+        <div className="relative h-[450px] w-full overflow-hidden rounded-3xl shadow-xl">
           <Image
             src={vehicle.imageUrl}
             alt={vehicle.name}
@@ -48,7 +47,6 @@ export default async function VehiclePage({
             className="object-cover"
           />
         </div>
-
       </div>
     </main>
   );
