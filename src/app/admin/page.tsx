@@ -2,14 +2,15 @@ import Image from "next/image";
 import { revalidatePath } from "next/cache";
 import { desc, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { vehicles } from "@/db/schema";
+import { vehicles, vehicleImages } from "@/db/schema";
 import { requireAdminSession } from "@/lib/auth";
 
 type VehicleStatus = "disponible" | "reservado" | "vendido";
 
 /* ========================= */
-/* CLOUDINARY (UNSIGNED) */
+/* CLOUDINARY UNSIGNED */
 /* ========================= */
+
 async function uploadImageToCloudinary(file: File): Promise<string> {
   const cloudName = process.env.CLOUDINARY_CLOUD_NAME!;
   const uploadPreset = process.env.CLOUDINARY_UPLOAD_PRESET!;
@@ -20,15 +21,10 @@ async function uploadImageToCloudinary(file: File): Promise<string> {
 
   const response = await fetch(
     `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
-    {
-      method: "POST",
-      body: form,
-    }
+    { method: "POST", body: form }
   );
 
   if (!response.ok) {
-    const errorText = await response.text();
-    console.error("Cloudinary error:", errorText);
     throw new Error("Error subiendo imagen.");
   }
 
@@ -37,111 +33,73 @@ async function uploadImageToCloudinary(file: File): Promise<string> {
 }
 
 /* ========================= */
-/* CREATE */
+/* CREATE VEHICLE */
 /* ========================= */
+
 async function createVehicle(formData: FormData) {
   "use server";
 
   await requireAdminSession();
 
-  const name = String(formData.get("name") ?? "").trim();
+  const name = String(formData.get("name"));
   const year = Number(formData.get("year"));
   const mileageKm = Number(formData.get("mileageKm"));
-  const fuel = String(formData.get("fuel") ?? "").trim();
-  const transmission = String(formData.get("transmission") ?? "").trim();
+  const fuel = String(formData.get("fuel"));
+  const transmission = String(formData.get("transmission"));
   const priceUsd = Number(formData.get("priceUsd"));
-  const status = String(formData.get("status") ?? "disponible") as VehicleStatus;
+  const status = String(formData.get("status")) as VehicleStatus;
   const isFeatured = formData.get("isFeatured") === "on";
-  const imageFile = formData.get("imageFile");
 
-  if (!name || !fuel || !transmission) {
-    throw new Error("Faltan campos obligatorios.");
+  const files = formData.getAll("imageFiles") as File[];
+
+  if (!files.length) {
+    throw new Error("Debes subir al menos una imagen.");
   }
 
-  if (!imageFile || !(imageFile instanceof File) || imageFile.size === 0) {
-    throw new Error("Debes subir una imagen.");
+  const uploadedUrls: string[] = [];
+
+  for (const file of files) {
+    if (file.size > 0) {
+      const url = await uploadImageToCloudinary(file);
+      uploadedUrls.push(url);
+    }
   }
 
-  const imageUrl = await uploadImageToCloudinary(imageFile);
+  const mainImage = uploadedUrls[0];
 
-  await db.insert(vehicles).values({
-    name,
-    year,
-    mileageKm,
-    fuel,
-    transmission,
-    priceUsd,
-    imageUrl,
-    status,
-    isFeatured,
-  });
-
-  revalidatePath("/");
-  revalidatePath("/admin");
-}
-
-/* ========================= */
-/* UPDATE */
-/* ========================= */
-async function updateVehicle(formData: FormData) {
-  "use server";
-
-  await requireAdminSession();
-
-  const id = Number(formData.get("id"));
-  const imageFile = formData.get("imageFile");
-  const currentImageUrl = String(formData.get("currentImageUrl") ?? "");
-
-  let imageUrl = currentImageUrl;
-
-  if (imageFile instanceof File && imageFile.size > 0) {
-    imageUrl = await uploadImageToCloudinary(imageFile);
-  }
-
-  await db
-    .update(vehicles)
-    .set({
-      name: String(formData.get("name")),
-      year: Number(formData.get("year")),
-      mileageKm: Number(formData.get("mileageKm")),
-      fuel: String(formData.get("fuel")),
-      transmission: String(formData.get("transmission")),
-      priceUsd: Number(formData.get("priceUsd")),
-      status: String(formData.get("status")) as VehicleStatus,
-      isFeatured: formData.get("isFeatured") === "on",
-      imageUrl,
+  const [newVehicle] = await db
+    .insert(vehicles)
+    .values({
+      name,
+      year,
+      mileageKm,
+      fuel,
+      transmission,
+      priceUsd,
+      imageUrl: mainImage,
+      status,
+      isFeatured,
     })
-    .where(eq(vehicles.id, id));
+    .returning();
+
+  for (const imageUrl of uploadedUrls) {
+    await db.insert(vehicleImages).values({
+      vehicleId: newVehicle.id,
+      imageUrl,
+    });
+  }
 
   revalidatePath("/");
   revalidatePath("/admin");
 }
-
-/* ========================= */
-/* DELETE */
-/* ========================= */
-async function deleteVehicle(formData: FormData) {
-  "use server";
-
-  await requireAdminSession();
-
-  const id = Number(formData.get("id"));
-
-  await db.delete(vehicles).where(eq(vehicles.id, id));
-
-  revalidatePath("/");
-  revalidatePath("/admin");
-}
-
-/* ========================= */
-/* CONFIG */
-/* ========================= */
-export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
 
 /* ========================= */
 /* PAGE */
 /* ========================= */
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
 export default async function AdminPage() {
   await requireAdminSession();
 
@@ -157,16 +115,16 @@ export default async function AdminPage() {
       <form
         action={createVehicle}
         encType="multipart/form-data"
-        className="border p-6 rounded mb-10 space-y-3"
+        className="border p-6 rounded mb-10 space-y-4"
       >
         <h2 className="font-bold text-lg">Publicar nuevo vehículo</h2>
 
-        <input name="name" placeholder="Nombre" required className="border p-2 w-full" />
-        <input name="year" type="number" placeholder="Año" required className="border p-2 w-full" />
-        <input name="mileageKm" type="number" placeholder="Kilometraje" required className="border p-2 w-full" />
-        <input name="fuel" placeholder="Combustible" required className="border p-2 w-full" />
-        <input name="transmission" placeholder="Transmisión" required className="border p-2 w-full" />
-        <input name="priceUsd" type="number" placeholder="Precio USD" required className="border p-2 w-full" />
+        <input name="name" required placeholder="Nombre" className="border p-2 w-full" />
+        <input name="year" type="number" required placeholder="Año" className="border p-2 w-full" />
+        <input name="mileageKm" type="number" required placeholder="Kilometraje" className="border p-2 w-full" />
+        <input name="fuel" required placeholder="Combustible" className="border p-2 w-full" />
+        <input name="transmission" required placeholder="Transmisión" className="border p-2 w-full" />
+        <input name="priceUsd" type="number" required placeholder="Precio USD" className="border p-2 w-full" />
 
         <select name="status" className="border p-2 w-full">
           <option value="disponible">Disponible</option>
@@ -179,7 +137,15 @@ export default async function AdminPage() {
           Destacado
         </label>
 
-        <input type="file" name="imageFile" accept="image/*" required />
+        {/* ✅ MULTIPLE FILE INPUT */}
+        <input
+          type="file"
+          name="imageFiles"
+          accept="image/*"
+          multiple
+          required
+          className="border p-2 w-full"
+        />
 
         <button className="bg-black text-white px-4 py-2 rounded">
           Publicar vehículo
@@ -195,8 +161,8 @@ export default async function AdminPage() {
           <Image
             src={car.imageUrl}
             alt={car.name}
-            width={250}
-            height={160}
+            width={300}
+            height={200}
             className="rounded mb-3"
           />
           <p className="font-semibold">{car.name}</p>
