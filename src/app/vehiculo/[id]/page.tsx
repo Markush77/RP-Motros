@@ -9,21 +9,30 @@ export const dynamic = "force-dynamic";
 export default async function VehiclePage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const id = Number(params.id);
+  const resolvedParams = await params;
+  const id = Number(resolvedParams.id);
 
-  const vehicle = await db.query.vehicles.findFirst({
-    where: eq(vehicles.id, id),
-  });
+  if (isNaN(id)) {
+    return notFound();
+  }
+
+  const result = await db
+    .select()
+    .from(vehicles)
+    .where(eq(vehicles.id, id));
+
+  const vehicle = result[0];
 
   if (!vehicle) {
     return notFound();
   }
 
-  const images = await db.query.vehicleImages.findMany({
-    where: eq(vehicleImages.vehicleId, id),
-  });
+  const images = await db
+    .select()
+    .from(vehicleImages)
+    .where(eq(vehicleImages.vehicleId, id));
 
   return (
     <main className="min-h-screen bg-white px-6 py-16">
