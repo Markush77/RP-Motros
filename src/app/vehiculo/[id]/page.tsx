@@ -7,12 +7,9 @@ import { notFound } from "next/navigation";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export default async function VehiclePage({
-  params,
-}: {
-  params: { id: string };
-}) {
-  const id = Number(params.id);
+export default async function VehiclePage(props: any) {
+  const params = await props.params;
+  const id = parseInt(params.id, 10);
 
   if (!id || isNaN(id)) {
     return notFound();
