@@ -94,6 +94,52 @@ async function createVehicle(formData: FormData) {
 }
 
 /* ========================= */
+/* UPDATE VEHICLE */
+/* ========================= */
+
+async function updateVehicle(formData: FormData) {
+  "use server";
+
+  await requireAdminSession();
+
+  const id = Number(formData.get("id"));
+
+  await db
+    .update(vehicles)
+    .set({
+      name: String(formData.get("name")),
+      year: Number(formData.get("year")),
+      mileageKm: Number(formData.get("mileageKm")),
+      fuel: String(formData.get("fuel")),
+      transmission: String(formData.get("transmission")),
+      priceUsd: Number(formData.get("priceUsd")),
+      status: String(formData.get("status")) as VehicleStatus,
+      isFeatured: formData.get("isFeatured") === "on",
+    })
+    .where(eq(vehicles.id, id));
+
+  revalidatePath("/");
+  revalidatePath("/admin");
+}
+
+/* ========================= */
+/* DELETE VEHICLE */
+/* ========================= */
+
+async function deleteVehicle(formData: FormData) {
+  "use server";
+
+  await requireAdminSession();
+
+  const id = Number(formData.get("id"));
+
+  await db.delete(vehicles).where(eq(vehicles.id, id));
+
+  revalidatePath("/");
+  revalidatePath("/admin");
+}
+
+/* ========================= */
 /* PAGE */
 /* ========================= */
 
@@ -112,6 +158,7 @@ export default async function AdminPage() {
     <main className="min-h-screen bg-white p-10">
       <h1 className="text-2xl font-bold mb-6">Admin RP Motors</h1>
 
+      {/* CREATE FORM */}
       <form
         action={createVehicle}
         encType="multipart/form-data"
@@ -137,7 +184,6 @@ export default async function AdminPage() {
           Destacado
         </label>
 
-        {/* ✅ MULTIPLE FILE INPUT */}
         <input
           type="file"
           name="imageFiles"
@@ -152,6 +198,7 @@ export default async function AdminPage() {
         </button>
       </form>
 
+      {/* LISTADO */}
       <h2 className="text-xl font-bold mb-4">
         Vehículos cargados: {rows.length}
       </h2>
@@ -166,6 +213,14 @@ export default async function AdminPage() {
             className="rounded mb-3"
           />
           <p className="font-semibold">{car.name}</p>
+          <p className="text-sm text-slate-500">ID: {car.id}</p>
+
+          <form action={deleteVehicle} className="mt-4">
+            <input type="hidden" name="id" value={car.id} />
+            <button className="text-red-600 text-sm font-semibold">
+              Eliminar vehículo
+            </button>
+          </form>
         </div>
       ))}
     </main>
