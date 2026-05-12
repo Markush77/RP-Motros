@@ -1,13 +1,34 @@
-"use client";
+import { eq } from "drizzle-orm";
+import { db } from "@/db";
+import { vehicles, vehicleImages } from "@/db/schema";
+import { notFound } from "next/navigation";
+import VehicleGallery from "./VehicleGallery";
 
-import Image from "next/image";
-import { useState } from "react";
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
-export default function VehiclePageClient({
-  vehicle,
-  images,
-}: any) {
-  const [mainImage, setMainImage] = useState(vehicle.imageUrl);
+export default async function VehiclePage({
+  params,
+}: {
+  params: { id: string };
+}) {
+  const id = parseInt(params.id, 10);
+
+  if (!id || isNaN(id)) return notFound();
+
+  const result = await db
+    .select()
+    .from(vehicles)
+    .where(eq(vehicles.id, id));
+
+  const vehicle = result[0];
+
+  if (!vehicle) return notFound();
+
+  const images = await db
+    .select()
+    .from(vehicleImages)
+    .where(eq(vehicleImages.vehicleId, id));
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-white to-slate-100 px-6 py-16">
@@ -17,43 +38,14 @@ export default function VehiclePageClient({
           {vehicle.name}
         </h1>
 
-        <p className="text-3xl font-extrabold text-red-600 mb-8">
+        <p className="text-3xl font-extrabold text-red-600 mb-10">
           USD {vehicle.priceUsd.toLocaleString("en-US")}
         </p>
 
-        <div className="grid gap-8 md:grid-cols-2">
-
-          {/* Imagen principal */}
-          <div className="relative h-[500px] w-full overflow-hidden rounded-3xl shadow-xl">
-            <Image
-              src={mainImage}
-              alt={vehicle.name}
-              fill
-              className="object-cover"
-            />
-          </div>
-
-          {/* Miniaturas */}
-          <div className="grid grid-cols-3 gap-4">
-            {[vehicle.imageUrl, ...images.map((i: any) => i.imageUrl)].map(
-              (img: string, index: number) => (
-                <div
-                  key={index}
-                  onClick={() => setMainImage(img)}
-                  className="relative h-32 w-full overflow-hidden rounded-xl shadow-md cursor-pointer hover:scale-105 transition"
-                >
-                  <Image
-                    src={img}
-                    alt="Miniatura"
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-              )
-            )}
-          </div>
-
-        </div>
+        <VehicleGallery
+          mainImage={vehicle.imageUrl}
+          images={images}
+        />
 
       </div>
     </main>
