@@ -81,7 +81,7 @@ export function verifySessionToken(
 
 export async function getAdminSession() {
   const { cookies } = await import("next/headers");
-  const cookieStore = cookies(); // ✅ FIX: sin await
+  const cookieStore = await cookies(); // ✅ Next 16 requiere await
   const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
   return verifySessionToken(token);
 }
