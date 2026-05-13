@@ -36,17 +36,22 @@ export default async function HomePage() {
     <main className="min-h-screen bg-gradient-to-b from-white via-slate-50 to-white text-slate-900">
 
       {/* HEADER */}
-      <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/80 backdrop-blur shadow-sm">
+      <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/90 backdrop-blur shadow-sm">
         <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-4 py-4">
-          <div>
-            <p className="text-xs uppercase tracking-[0.25em] text-slate-500">
-              RP MOTORS
-            </p>
-            <p className="text-sm font-semibold">
-              Compraventa de automóviles
-            </p>
+
+          {/* LOGO */}
+          <div className="flex items-center gap-4">
+            <Image
+              src="/logo.png"
+              alt="RP Motors"
+              width={180}
+              height={70}
+              className="object-contain"
+              priority
+            />
           </div>
 
+          {/* BOTONES */}
           <div className="flex items-center gap-3">
             <a
               href="tel:+59822032070"
