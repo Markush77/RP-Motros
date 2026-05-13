@@ -1,10 +1,17 @@
 import Image from "next/image";
+import Link from "next/link";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { vehicles } from "@/db/schema";
 import { notFound } from "next/navigation";
 
 export const runtime = "nodejs";
+
+const statusStyles: Record<string, string> = {
+  disponible: "bg-emerald-100 text-emerald-700 ring-1 ring-emerald-300",
+  reservado: "bg-amber-100 text-amber-700 ring-1 ring-amber-300",
+  vendido: "bg-slate-200 text-slate-600 ring-1 ring-slate-400",
+};
 
 export default async function VehiclePage(props: any) {
   const params = await props.params;
@@ -22,32 +29,77 @@ export default async function VehiclePage(props: any) {
   if (!vehicle) return notFound();
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-100 px-6 py-20">
-      <div className="mx-auto max-w-7xl">
+    <main className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white">
 
-        {/* HEADER VEHÍCULO */}
+      {/* HEADER */}
+      <header className="sticky top-0 z-50 border-b border-slate-800 bg-slate-950/90 backdrop-blur shadow-xl">
+        <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-6 py-4">
+          <Link href="/">
+            <Image
+              src="/logo.png"
+              alt="RP Motors"
+              width={200}
+              height={80}
+              className="object-contain"
+              priority
+            />
+          </Link>
+
+          <div className="flex items-center gap-4">
+            <a
+              href="tel:+59822032070"
+              className="rounded-full border border-slate-600 text-white px-6 py-2 text-sm font-semibold transition-all duration-300 hover:border-white hover:bg-white hover:text-slate-900"
+            >
+              Llamar
+            </a>
+            <a
+              href="https://wa.me/59898153089?text=Hola%20RP%20Motors"
+              target="_blank"
+              rel="noreferrer"
+              className="rounded-full bg-emerald-500 px-6 py-2 text-sm font-semibold text-white transition-all duration-300 hover:bg-emerald-400 hover:scale-105 shadow-lg shadow-emerald-500/20"
+            >
+              WhatsApp
+            </a>
+          </div>
+        </div>
+      </header>
+
+      {/* CONTENIDO */}
+      <div className="mx-auto max-w-7xl px-6 py-20">
+
+        {/* BREADCRUMB */}
+        <div className="mb-10 flex items-center gap-2 text-sm text-slate-400">
+          <Link href="/" className="hover:text-white transition">
+            Inicio
+          </Link>
+          <span>/</span>
+          <span className="text-white font-medium">{vehicle.name}</span>
+        </div>
+
+        {/* TÍTULO Y PRECIO */}
         <div className="mb-14">
-          <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight text-slate-900 leading-tight">
+          <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-white leading-tight">
             {vehicle.name}
           </h1>
 
-          <div className="mt-6 flex items-center gap-6">
-            <p className="text-4xl md:text-5xl font-extrabold text-red-600">
+          <div className="mt-6 flex flex-wrap items-center gap-6">
+            <p className="text-4xl md:text-5xl font-extrabold text-red-500">
               USD {vehicle.priceUsd.toLocaleString("en-US")}
             </p>
-
-            <span className="px-4 py-1 rounded-full text-sm font-semibold bg-emerald-100 text-emerald-700">
+            <span
+              className={`rounded-full px-5 py-1.5 text-sm font-bold capitalize ${statusStyles[vehicle.status]}`}
+            >
               {vehicle.status}
             </span>
           </div>
         </div>
 
-        {/* Layout principal */}
-        <div className="grid gap-16 lg:grid-cols-[1.7fr_1fr] items-start">
+        {/* GRID PRINCIPAL */}
+        <div className="grid gap-12 lg:grid-cols-[1.7fr_1fr] items-start">
 
-          {/* GALERÍA */}
+          {/* IMAGEN PRINCIPAL */}
           <div>
-            <div className="relative h-[600px] w-full overflow-hidden rounded-3xl shadow-2xl group">
+            <div className="relative h-[550px] w-full overflow-hidden rounded-3xl shadow-2xl group border border-slate-700">
               <Image
                 src={vehicle.imageUrl}
                 alt={vehicle.name}
@@ -55,77 +107,72 @@ export default async function VehiclePage(props: any) {
                 className="object-cover transition duration-700 group-hover:scale-105"
                 priority
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
             </div>
 
             {/* Miniaturas futuras */}
-            <div className="mt-8 grid grid-cols-4 gap-4">
-              <div className="h-24 rounded-xl bg-slate-200" />
-              <div className="h-24 rounded-xl bg-slate-200" />
-              <div className="h-24 rounded-xl bg-slate-200" />
-              <div className="h-24 rounded-xl bg-slate-200" />
+            <div className="mt-6 grid grid-cols-4 gap-4">
+              <div className="h-24 rounded-xl bg-slate-800 border border-slate-700" />
+              <div className="h-24 rounded-xl bg-slate-800 border border-slate-700" />
+              <div className="h-24 rounded-xl bg-slate-800 border border-slate-700" />
+              <div className="h-24 rounded-xl bg-slate-800 border border-slate-700" />
             </div>
           </div>
 
-          {/* PANEL DERECHO */}
-          <div className="relative">
+          {/* PANEL FICHA TÉCNICA */}
+          <div className="sticky top-28">
+            <div className="rounded-3xl bg-slate-900 border border-slate-700 shadow-2xl p-10">
 
-            <div className="sticky top-28 rounded-3xl bg-white shadow-2xl p-10 border border-slate-100">
-
-              <h2 className="text-2xl font-bold text-slate-900 mb-8">
+              <h2 className="text-2xl font-bold text-white mb-8 pb-4 border-b border-slate-700">
                 Ficha técnica
               </h2>
 
-              <div className="space-y-5 text-slate-700">
+              <div className="space-y-5 text-slate-300">
 
-                <div className="flex justify-between border-b pb-3">
-                  <span className="font-medium">Año</span>
-                  <span className="font-semibold">{vehicle.year}</span>
+                <div className="flex justify-between py-3 border-b border-slate-800">
+                  <span className="font-medium text-slate-400">Año</span>
+                  <span className="font-bold text-white">{vehicle.year}</span>
                 </div>
 
-                <div className="flex justify-between border-b pb-3">
-                  <span className="font-medium">Kilometraje</span>
-                  <span className="font-semibold">
+                <div className="flex justify-between py-3 border-b border-slate-800">
+                  <span className="font-medium text-slate-400">Kilometraje</span>
+                  <span className="font-bold text-white">
                     {vehicle.mileageKm.toLocaleString("es-UY")} Km
                   </span>
                 </div>
 
-                <div className="flex justify-between border-b pb-3">
-                  <span className="font-medium">Combustible</span>
-                  <span className="font-semibold">{vehicle.fuel}</span>
+                <div className="flex justify-between py-3 border-b border-slate-800">
+                  <span className="font-medium text-slate-400">Combustible</span>
+                  <span className="font-bold text-white">{vehicle.fuel}</span>
                 </div>
 
-                <div className="flex justify-between border-b pb-3">
-                  <span className="font-medium">Transmisión</span>
-                  <span className="font-semibold">{vehicle.transmission}</span>
+                <div className="flex justify-between py-3 border-b border-slate-800">
+                  <span className="font-medium text-slate-400">Transmisión</span>
+                  <span className="font-bold text-white">{vehicle.transmission}</span>
                 </div>
 
-                <div className="flex justify-between">
-                  <span className="font-medium">Estado</span>
-                  <span className="font-semibold capitalize">
-                    {vehicle.status}
-                  </span>
+                <div className="flex justify-between py-3">
+                  <span className="font-medium text-slate-400">Estado</span>
+                  <span className="font-bold text-white capitalize">{vehicle.status}</span>
                 </div>
+
               </div>
 
-              {/* CTA */}
+              {/* BOTÓN CTA */}
               <a
-                href={`https://wa.me/59898153089?text=Hola%20quiero%20información%20sobre%20${encodeURIComponent(
-                  vehicle.name
-                )}`}
+                href={`https://wa.me/59898153089?text=Hola%20quiero%20información%20sobre%20${encodeURIComponent(vehicle.name)}`}
                 target="_blank"
                 rel="noreferrer"
-                className="mt-10 block w-full text-center rounded-full bg-gradient-to-r from-red-600 to-red-500 px-6 py-4 text-lg font-bold text-white shadow-lg shadow-red-500/30 transition-all duration-300 hover:scale-105 hover:shadow-red-600/40"
+                className="mt-10 block w-full text-center rounded-full bg-gradient-to-r from-red-600 to-red-500 px-6 py-4 text-lg font-bold text-white shadow-lg shadow-red-600/30 transition-all duration-300 hover:scale-105 hover:shadow-red-500/50"
               >
                 Consultar por WhatsApp
               </a>
 
-              <p className="mt-4 text-xs text-slate-400 text-center">
-                Respuesta rápida • Atención personalizada
+              <p className="mt-4 text-xs text-slate-500 text-center">
+                Respuesta inmediata • Atención personalizada
               </p>
 
             </div>
-
           </div>
 
         </div>
