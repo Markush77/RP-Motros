@@ -114,22 +114,6 @@ export default async function HomePage() {
               </a>
             </div>
 
-            {/* STATS */}
-            <div className="mt-16 flex flex-wrap gap-10">
-              <div>
-                <p className="text-3xl font-extrabold text-white">+100</p>
-                <p className="text-xs text-slate-400 mt-1 uppercase tracking-widest">Vehículos vendidos</p>
-              </div>
-              <div>
-                <p className="text-3xl font-extrabold text-white">100%</p>
-                <p className="text-xs text-slate-400 mt-1 uppercase tracking-widest">Clientes satisfechos</p>
-              </div>
-              <div>
-                <p className="text-3xl font-extrabold text-white">Directo</p>
-                <p className="text-xs text-slate-400 mt-1 uppercase tracking-widest">Sin intermediarios</p>
-              </div>
-            </div>
-
           </div>
         </div>
       </section>
