@@ -8,7 +8,7 @@ import { requireAdminSession } from "@/lib/auth";
 type VehicleStatus = "disponible" | "reservado" | "vendido";
 
 /* ========================= */
-/* CLOUDINARY UNSIGNED */
+/* CLOUDINARY */
 /* ========================= */
 
 async function uploadImageToCloudinary(file: File): Promise<string> {
@@ -24,16 +24,14 @@ async function uploadImageToCloudinary(file: File): Promise<string> {
     { method: "POST", body: form }
   );
 
-  if (!response.ok) {
-    throw new Error("Error subiendo imagen.");
-  }
+  if (!response.ok) throw new Error("Error subiendo imagen.");
 
   const data = await response.json();
   return data.secure_url;
 }
 
 /* ========================= */
-/* CREATE VEHICLE */
+/* CREATE */
 /* ========================= */
 
 async function createVehicle(formData: FormData) {
@@ -52,9 +50,7 @@ async function createVehicle(formData: FormData) {
 
   const files = formData.getAll("imageFiles") as File[];
 
-  if (!files.length) {
-    throw new Error("Debes subir al menos una imagen.");
-  }
+  if (!files.length) throw new Error("Debes subir al menos una imagen.");
 
   const uploadedUrls: string[] = [];
 
@@ -94,12 +90,11 @@ async function createVehicle(formData: FormData) {
 }
 
 /* ========================= */
-/* DELETE VEHICLE */
+/* DELETE */
 /* ========================= */
 
 async function deleteVehicle(formData: FormData) {
   "use server";
-
   await requireAdminSession();
 
   const id = Number(formData.get("id"));
@@ -113,7 +108,6 @@ async function deleteVehicle(formData: FormData) {
 /* PAGE */
 /* ========================= */
 
-export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
@@ -125,77 +119,120 @@ export default async function AdminPage() {
     .orderBy(desc(vehicles.createdAt));
 
   return (
-    <main className="min-h-screen bg-white p-10">
-      <h1 className="text-2xl font-bold mb-6">Admin RP Motors</h1>
+    <main className="min-h-screen bg-slate-950 text-white px-6 py-16">
+      <div className="mx-auto max-w-7xl">
 
-      <form
-        action={createVehicle}
-        encType="multipart/form-data"
-        className="border p-6 rounded mb-10 space-y-4"
-      >
-        <h2 className="font-bold text-lg">Publicar nuevo vehículo</h2>
-
-        <input name="name" required placeholder="Nombre" className="border p-2 w-full" />
-        <input name="year" type="number" required placeholder="Año" className="border p-2 w-full" />
-        <input name="mileageKm" type="number" required placeholder="Kilometraje" className="border p-2 w-full" />
-        <input name="fuel" required placeholder="Combustible" className="border p-2 w-full" />
-        <input name="transmission" required placeholder="Transmisión" className="border p-2 w-full" />
-        <input name="priceUsd" type="number" required placeholder="Precio USD" className="border p-2 w-full" />
-
-        <select name="status" className="border p-2 w-full">
-          <option value="disponible">Disponible</option>
-          <option value="reservado">Reservado</option>
-          <option value="vendido">Vendido</option>
-        </select>
-
-        <label className="flex gap-2 items-center">
-          <input type="checkbox" name="isFeatured" defaultChecked />
-          Destacado
-        </label>
-
-        <input
-          type="file"
-          name="imageFiles"
-          accept="image/*"
-          multiple
-          required
-          className="border p-2 w-full"
-        />
-
-        <button className="bg-black text-white px-4 py-2 rounded">
-          Publicar vehículo
-        </button>
-      </form>
-
-      <h2 className="text-xl font-bold mb-4">
-        Vehículos cargados: {rows.length}
-      </h2>
-
-      {rows.map((car) => (
-        <div key={car.id} className="border p-6 mb-6 rounded">
-          <Image
-            src={car.imageUrl}
-            alt={car.name}
-            width={300}
-            height={200}
-            className="rounded mb-3"
-          />
-
-          <p className="font-semibold">{car.name}</p>
-
-          {/* ✅ AQUÍ SE MUESTRA EL ID */}
-          <p className="text-sm text-slate-500">
-            ID del vehículo: {car.id}
+        {/* HEADER */}
+        <div className="mb-12">
+          <p className="text-sm uppercase tracking-widest text-red-500">
+            Panel administrativo
           </p>
+          <h1 className="text-4xl font-extrabold mt-2">
+            Admin RP Motors
+          </h1>
+        </div>
 
-          <form action={deleteVehicle} className="mt-4">
-            <input type="hidden" name="id" value={car.id} />
-            <button className="text-red-600 text-sm font-semibold">
-              Eliminar vehículo
-            </button>
+        {/* FORM */}
+        <div className="rounded-3xl border border-slate-800 bg-slate-900 p-10 shadow-2xl mb-16">
+          <h2 className="text-2xl font-bold mb-8">
+            Publicar nuevo vehículo
+          </h2>
+
+          <form
+            action={createVehicle}
+            encType="multipart/form-data"
+            className="grid md:grid-cols-2 gap-6"
+          >
+            <input name="name" required placeholder="Nombre"
+              className="input-admin" />
+
+            <input name="year" type="number" required placeholder="Año"
+              className="input-admin" />
+
+            <input name="mileageKm" type="number" required placeholder="Kilometraje"
+              className="input-admin" />
+
+            <input name="fuel" required placeholder="Combustible"
+              className="input-admin" />
+
+            <input name="transmission" required placeholder="Transmisión"
+              className="input-admin" />
+
+            <input name="priceUsd" type="number" required placeholder="Precio USD"
+              className="input-admin" />
+
+            <select name="status" className="input-admin">
+              <option value="disponible">Disponible</option>
+              <option value="reservado">Reservado</option>
+              <option value="vendido">Vendido</option>
+            </select>
+
+            <label className="flex items-center gap-3 text-sm">
+              <input type="checkbox" name="isFeatured" defaultChecked />
+              Vehículo destacado
+            </label>
+
+            <div className="md:col-span-2">
+              <input
+                type="file"
+                name="imageFiles"
+                accept="image/*"
+                multiple
+                required
+                className="input-admin"
+              />
+            </div>
+
+            <div className="md:col-span-2">
+              <button className="w-full rounded-xl bg-red-600 py-3 font-bold hover:bg-red-500 transition">
+                Publicar vehículo
+              </button>
+            </div>
           </form>
         </div>
-      ))}
+
+        {/* LISTADO */}
+        <h2 className="text-2xl font-bold mb-8">
+          Vehículos cargados ({rows.length})
+        </h2>
+
+        <div className="grid md:grid-cols-3 gap-8">
+          {rows.map((car) => (
+            <div
+              key={car.id}
+              className="rounded-3xl overflow-hidden border border-slate-800 bg-slate-900 shadow-xl"
+            >
+              <div className="relative h-56">
+                <Image
+                  src={car.imageUrl}
+                  alt={car.name}
+                  fill
+                  className="object-cover"
+                />
+              </div>
+
+              <div className="p-6">
+                <h3 className="font-bold text-lg">{car.name}</h3>
+                <p className="text-sm text-slate-400 mt-1">
+                  ID: {car.id}
+                </p>
+
+                <p className="text-red-500 text-xl font-bold mt-4">
+                  USD {car.priceUsd.toLocaleString("en-US")}
+                </p>
+
+                <form action={deleteVehicle} className="mt-6">
+                  <input type="hidden" name="id" value={car.id} />
+                  <button className="text-sm font-semibold text-red-500 hover:text-red-400 transition">
+                    Eliminar vehículo
+                  </button>
+                </form>
+              </div>
+            </div>
+          ))}
+        </div>
+
+      </div>
     </main>
   );
 }
