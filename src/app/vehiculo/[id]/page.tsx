@@ -2,8 +2,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
-import { vehicles } from "@/db/schema";
+import { vehicles, vehicleImages } from "@/db/schema";
 import { notFound } from "next/navigation";
+import ImageCarousel from "./ImageCarousel";
 
 export const runtime = "nodejs";
 
@@ -28,6 +29,17 @@ export default async function VehiclePage(props: any) {
 
   if (!vehicle) return notFound();
 
+  // ✅ Traer imágenes múltiples
+  const imagesResult = await db
+    .select()
+    .from(vehicleImages)
+    .where(eq(vehicleImages.vehicleId, id));
+
+  const images =
+    imagesResult.length > 0
+      ? imagesResult.map((img) => img.imageUrl)
+      : [vehicle.imageUrl]; // fallback por si no hay imágenes extra
+
   return (
     <main className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white">
 
@@ -48,7 +60,7 @@ export default async function VehiclePage(props: any) {
           <div className="flex items-center gap-4">
             <a
               href="tel:+59822032070"
-              className="rounded-full border border-slate-600 text-white px-6 py-2 text-sm font-semibold transition-all duration-300 hover:border-white hover:bg-white hover:text-slate-900"
+              className="rounded-full border border-slate-600 text-white px-6 py-2 text-sm font-semibold transition hover:border-white hover:bg-white hover:text-slate-900"
             >
               Llamar
             </a>
@@ -56,7 +68,7 @@ export default async function VehiclePage(props: any) {
               href="https://wa.me/59898153089?text=Hola%20RP%20Motors"
               target="_blank"
               rel="noreferrer"
-              className="rounded-full bg-emerald-500 px-6 py-2 text-sm font-semibold text-white transition-all duration-300 hover:bg-emerald-400 hover:scale-105 shadow-lg shadow-emerald-500/20"
+              className="rounded-full bg-emerald-500 px-6 py-2 text-sm font-semibold text-white transition hover:bg-emerald-400 hover:scale-105 shadow-lg shadow-emerald-500/20"
             >
               WhatsApp
             </a>
@@ -78,7 +90,7 @@ export default async function VehiclePage(props: any) {
 
         {/* TÍTULO Y PRECIO */}
         <div className="mb-14">
-          <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-white leading-tight">
+          <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight">
             {vehicle.name}
           </h1>
 
@@ -97,29 +109,13 @@ export default async function VehiclePage(props: any) {
         {/* GRID PRINCIPAL */}
         <div className="grid gap-12 lg:grid-cols-[1.7fr_1fr] items-start">
 
-          {/* IMAGEN PRINCIPAL */}
-          <div>
-            <div className="relative h-[550px] w-full overflow-hidden rounded-3xl shadow-2xl group border border-slate-700">
-              <Image
-                src={vehicle.imageUrl}
-                alt={vehicle.name}
-                fill
-                className="object-cover transition duration-700 group-hover:scale-105"
-                priority
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
-            </div>
+          {/* ✅ CAROUSEL REAL */}
+          <ImageCarousel
+            images={images}
+            name={vehicle.name}
+          />
 
-            {/* Miniaturas futuras */}
-            <div className="mt-6 grid grid-cols-4 gap-4">
-              <div className="h-24 rounded-xl bg-slate-800 border border-slate-700" />
-              <div className="h-24 rounded-xl bg-slate-800 border border-slate-700" />
-              <div className="h-24 rounded-xl bg-slate-800 border border-slate-700" />
-              <div className="h-24 rounded-xl bg-slate-800 border border-slate-700" />
-            </div>
-          </div>
-
-          {/* PANEL FICHA TÉCNICA */}
+          {/* FICHA TÉCNICA */}
           <div className="sticky top-28">
             <div className="rounded-3xl bg-slate-900 border border-slate-700 shadow-2xl p-10">
 
@@ -130,29 +126,29 @@ export default async function VehiclePage(props: any) {
               <div className="space-y-5 text-slate-300">
 
                 <div className="flex justify-between py-3 border-b border-slate-800">
-                  <span className="font-medium text-slate-400">Año</span>
+                  <span className="text-slate-400">Año</span>
                   <span className="font-bold text-white">{vehicle.year}</span>
                 </div>
 
                 <div className="flex justify-between py-3 border-b border-slate-800">
-                  <span className="font-medium text-slate-400">Kilometraje</span>
+                  <span className="text-slate-400">Kilometraje</span>
                   <span className="font-bold text-white">
                     {vehicle.mileageKm.toLocaleString("es-UY")} Km
                   </span>
                 </div>
 
                 <div className="flex justify-between py-3 border-b border-slate-800">
-                  <span className="font-medium text-slate-400">Combustible</span>
+                  <span className="text-slate-400">Combustible</span>
                   <span className="font-bold text-white">{vehicle.fuel}</span>
                 </div>
 
                 <div className="flex justify-between py-3 border-b border-slate-800">
-                  <span className="font-medium text-slate-400">Transmisión</span>
+                  <span className="text-slate-400">Transmisión</span>
                   <span className="font-bold text-white">{vehicle.transmission}</span>
                 </div>
 
                 <div className="flex justify-between py-3">
-                  <span className="font-medium text-slate-400">Estado</span>
+                  <span className="text-slate-400">Estado</span>
                   <span className="font-bold text-white capitalize">{vehicle.status}</span>
                 </div>
 
@@ -163,7 +159,7 @@ export default async function VehiclePage(props: any) {
                 href={`https://wa.me/59898153089?text=Hola%20quiero%20información%20sobre%20${encodeURIComponent(vehicle.name)}`}
                 target="_blank"
                 rel="noreferrer"
-                className="mt-10 block w-full text-center rounded-full bg-gradient-to-r from-red-600 to-red-500 px-6 py-4 text-lg font-bold text-white shadow-lg shadow-red-600/30 transition-all duration-300 hover:scale-105 hover:shadow-red-500/50"
+                className="mt-10 block w-full text-center rounded-full bg-gradient-to-r from-red-600 to-red-500 px-6 py-4 text-lg font-bold text-white shadow-lg shadow-red-600/30 transition hover:scale-105 hover:shadow-red-500/50"
               >
                 Consultar por WhatsApp
               </a>

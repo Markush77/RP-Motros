@@ -3,8 +3,7 @@ import Image from "next/image";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { vehicles, vehicleImages } from "@/db/schema";
-import { notFound } from "next/navigation";
-import ImageCarousel from "./ImageCarousel";
+import { notFound } from "next/navigation";src/app/page.tsx
 
 export const runtime = "nodejs";
 
