@@ -13,13 +13,16 @@ body {
   color: #ffffff;
 }
 
-/* 👇 ESTA PARTE REEMPLAZALA COMPLETA */
+/* ========================= */
+/* ADMIN INPUTS COMPACTOS */
+/* ========================= */
+
 .input-admin {
-  @apply w-full rounded-xl border border-slate-700 bg-slate-800 px-4 py-3 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-red-600 transition;
+  @apply w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-red-600 transition;
 }
 
 select.input-admin {
   appearance: none;
-  background-color: rgb(30 41 59);
+  background-color: rgb(30 41 59); /* slate-800 */
   color: white;
 }
