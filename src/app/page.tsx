@@ -36,37 +36,40 @@ export default async function HomePage() {
     <main className="min-h-screen bg-gradient-to-b from-white via-slate-50 to-white text-slate-900">
 
       {/* HEADER */}
-      <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/90 backdrop-blur shadow-sm">
-        <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-4 py-4">
+      <header className="sticky top-0 z-50 border-b border-slate-800 bg-slate-950/90 backdrop-blur shadow-xl">
+        <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-6 py-4">
 
           {/* LOGO */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center">
             <Image
               src="/logo.png"
               alt="RP Motors"
-              width={180}
-              height={70}
+              width={200}
+              height={80}
               className="object-contain"
               priority
             />
           </div>
 
           {/* BOTONES */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
+
             <a
               href="tel:+59822032070"
-              className="rounded-full border border-slate-300 px-5 py-2 text-sm font-semibold transition hover:border-slate-900"
+              className="rounded-full border border-slate-600 text-white px-6 py-2 text-sm font-semibold transition-all duration-300 hover:border-white hover:bg-white hover:text-slate-900"
             >
               Llamar
             </a>
+
             <a
               href="https://wa.me/59898153089?text=Hola%20RP%20Motors"
               target="_blank"
               rel="noreferrer"
-              className="rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white transition hover:bg-slate-700 hover:scale-105"
+              className="rounded-full bg-emerald-500 px-6 py-2 text-sm font-semibold text-white transition-all duration-300 hover:bg-emerald-400 hover:scale-105 shadow-lg shadow-emerald-500/20"
             >
               WhatsApp
             </a>
+
           </div>
         </div>
       </header>
