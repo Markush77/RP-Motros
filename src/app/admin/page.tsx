@@ -36,7 +36,6 @@ async function uploadImageToCloudinary(file: File): Promise<string> {
 
 async function createVehicle(formData: FormData) {
   "use server";
-
   await requireAdminSession();
 
   const name = String(formData.get("name"));
@@ -90,6 +89,34 @@ async function createVehicle(formData: FormData) {
 }
 
 /* ========================= */
+/* UPDATE */
+/* ========================= */
+
+async function updateVehicle(formData: FormData) {
+  "use server";
+  await requireAdminSession();
+
+  const id = Number(formData.get("id"));
+
+  await db
+    .update(vehicles)
+    .set({
+      name: String(formData.get("name")),
+      year: Number(formData.get("year")),
+      mileageKm: Number(formData.get("mileageKm")),
+      fuel: String(formData.get("fuel")),
+      transmission: String(formData.get("transmission")),
+      priceUsd: Number(formData.get("priceUsd")),
+      status: String(formData.get("status")) as VehicleStatus,
+      isFeatured: formData.get("isFeatured") === "on",
+    })
+    .where(eq(vehicles.id, id));
+
+  revalidatePath("/");
+  revalidatePath("/admin");
+}
+
+/* ========================= */
 /* DELETE */
 /* ========================= */
 
@@ -132,7 +159,7 @@ export default async function AdminPage() {
           </h1>
         </div>
 
-        {/* FORM */}
+        {/* FORM CREAR */}
         <div className="rounded-3xl border border-slate-800 bg-slate-900 p-10 shadow-2xl mb-16">
           <h2 className="text-2xl font-bold mb-8">
             Publicar nuevo vehículo
@@ -143,23 +170,12 @@ export default async function AdminPage() {
             encType="multipart/form-data"
             className="grid md:grid-cols-2 gap-6"
           >
-            <input name="name" required placeholder="Nombre"
-              className="input-admin" />
-
-            <input name="year" type="number" required placeholder="Año"
-              className="input-admin" />
-
-            <input name="mileageKm" type="number" required placeholder="Kilometraje"
-              className="input-admin" />
-
-            <input name="fuel" required placeholder="Combustible"
-              className="input-admin" />
-
-            <input name="transmission" required placeholder="Transmisión"
-              className="input-admin" />
-
-            <input name="priceUsd" type="number" required placeholder="Precio USD"
-              className="input-admin" />
+            <input name="name" required placeholder="Nombre" className="input-admin" />
+            <input name="year" type="number" required placeholder="Año" className="input-admin" />
+            <input name="mileageKm" type="number" required placeholder="Kilometraje" className="input-admin" />
+            <input name="fuel" required placeholder="Combustible" className="input-admin" />
+            <input name="transmission" required placeholder="Transmisión" className="input-admin" />
+            <input name="priceUsd" type="number" required placeholder="Precio USD" className="input-admin" />
 
             <select name="status" className="input-admin">
               <option value="disponible">Disponible</option>
@@ -212,16 +228,41 @@ export default async function AdminPage() {
               </div>
 
               <div className="p-6">
-                <h3 className="font-bold text-lg">{car.name}</h3>
-                <p className="text-sm text-slate-400 mt-1">
-                  ID: {car.id}
-                </p>
+                <form action={updateVehicle} className="space-y-3">
+                  <input type="hidden" name="id" value={car.id} />
 
-                <p className="text-red-500 text-xl font-bold mt-4">
-                  USD {car.priceUsd.toLocaleString("en-US")}
-                </p>
+                  <input name="name" defaultValue={car.name} className="input-admin" />
+                  <input name="year" type="number" defaultValue={car.year} className="input-admin" />
+                  <input name="mileageKm" type="number" defaultValue={car.mileageKm} className="input-admin" />
+                  <input name="fuel" defaultValue={car.fuel} className="input-admin" />
+                  <input name="transmission" defaultValue={car.transmission} className="input-admin" />
+                  <input name="priceUsd" type="number" defaultValue={car.priceUsd} className="input-admin" />
 
-                <form action={deleteVehicle} className="mt-6">
+                  <select
+                    name="status"
+                    defaultValue={car.status}
+                    className="input-admin"
+                  >
+                    <option value="disponible">Disponible</option>
+                    <option value="reservado">Reservado</option>
+                    <option value="vendido">Vendido</option>
+                  </select>
+
+                  <label className="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      name="isFeatured"
+                      defaultChecked={car.isFeatured}
+                    />
+                    Destacado
+                  </label>
+
+                  <button className="w-full rounded-xl bg-emerald-600 py-2 font-semibold hover:bg-emerald-500 transition">
+                    Guardar cambios
+                  </button>
+                </form>
+
+                <form action={deleteVehicle} className="mt-4">
                   <input type="hidden" name="id" value={car.id} />
                   <button className="text-sm font-semibold text-red-500 hover:text-red-400 transition">
                     Eliminar vehículo
