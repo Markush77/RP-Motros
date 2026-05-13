@@ -22,35 +22,44 @@ export default async function VehiclePage(props: any) {
   if (!vehicle) return notFound();
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-white via-slate-50 to-white px-6 py-20">
+    <main className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-100 px-6 py-20">
       <div className="mx-auto max-w-7xl">
 
-        {/* Título */}
-        <div className="mb-12">
-          <h1 className="text-5xl font-extrabold tracking-tight">
+        {/* HEADER VEHÍCULO */}
+        <div className="mb-14">
+          <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight text-slate-900 leading-tight">
             {vehicle.name}
           </h1>
-          <p className="mt-4 text-4xl font-extrabold text-red-600">
-            USD {vehicle.priceUsd.toLocaleString("en-US")}
-          </p>
+
+          <div className="mt-6 flex items-center gap-6">
+            <p className="text-4xl md:text-5xl font-extrabold text-red-600">
+              USD {vehicle.priceUsd.toLocaleString("en-US")}
+            </p>
+
+            <span className="px-4 py-1 rounded-full text-sm font-semibold bg-emerald-100 text-emerald-700">
+              {vehicle.status}
+            </span>
+          </div>
         </div>
 
         {/* Layout principal */}
-        <div className="grid gap-12 lg:grid-cols-[1.6fr_1fr]">
+        <div className="grid gap-16 lg:grid-cols-[1.7fr_1fr] items-start">
 
-          {/* Galería grande */}
+          {/* GALERÍA */}
           <div>
-            <div className="relative h-[550px] w-full overflow-hidden rounded-3xl shadow-2xl">
+            <div className="relative h-[600px] w-full overflow-hidden rounded-3xl shadow-2xl group">
               <Image
                 src={vehicle.imageUrl}
                 alt={vehicle.name}
                 fill
-                className="object-cover"
+                className="object-cover transition duration-700 group-hover:scale-105"
+                priority
               />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
             </div>
 
-            {/* Placeholder para futuras miniaturas */}
-            <div className="mt-6 grid grid-cols-4 gap-4 opacity-60">
+            {/* Miniaturas futuras */}
+            <div className="mt-8 grid grid-cols-4 gap-4">
               <div className="h-24 rounded-xl bg-slate-200" />
               <div className="h-24 rounded-xl bg-slate-200" />
               <div className="h-24 rounded-xl bg-slate-200" />
@@ -58,46 +67,64 @@ export default async function VehiclePage(props: any) {
             </div>
           </div>
 
-          {/* Ficha técnica elegante */}
-          <div className="bg-white rounded-3xl shadow-xl p-10 space-y-6">
+          {/* PANEL DERECHO */}
+          <div className="relative">
 
-            <h2 className="text-2xl font-bold border-b pb-4">
-              Ficha técnica
-            </h2>
+            <div className="sticky top-28 rounded-3xl bg-white shadow-2xl p-10 border border-slate-100">
 
-            <div className="flex justify-between border-b pb-3">
-              <span className="font-semibold">Año</span>
-              <span>{vehicle.year}</span>
+              <h2 className="text-2xl font-bold text-slate-900 mb-8">
+                Ficha técnica
+              </h2>
+
+              <div className="space-y-5 text-slate-700">
+
+                <div className="flex justify-between border-b pb-3">
+                  <span className="font-medium">Año</span>
+                  <span className="font-semibold">{vehicle.year}</span>
+                </div>
+
+                <div className="flex justify-between border-b pb-3">
+                  <span className="font-medium">Kilometraje</span>
+                  <span className="font-semibold">
+                    {vehicle.mileageKm.toLocaleString("es-UY")} Km
+                  </span>
+                </div>
+
+                <div className="flex justify-between border-b pb-3">
+                  <span className="font-medium">Combustible</span>
+                  <span className="font-semibold">{vehicle.fuel}</span>
+                </div>
+
+                <div className="flex justify-between border-b pb-3">
+                  <span className="font-medium">Transmisión</span>
+                  <span className="font-semibold">{vehicle.transmission}</span>
+                </div>
+
+                <div className="flex justify-between">
+                  <span className="font-medium">Estado</span>
+                  <span className="font-semibold capitalize">
+                    {vehicle.status}
+                  </span>
+                </div>
+              </div>
+
+              {/* CTA */}
+              <a
+                href={`https://wa.me/59898153089?text=Hola%20quiero%20información%20sobre%20${encodeURIComponent(
+                  vehicle.name
+                )}`}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-10 block w-full text-center rounded-full bg-gradient-to-r from-red-600 to-red-500 px-6 py-4 text-lg font-bold text-white shadow-lg shadow-red-500/30 transition-all duration-300 hover:scale-105 hover:shadow-red-600/40"
+              >
+                Consultar por WhatsApp
+              </a>
+
+              <p className="mt-4 text-xs text-slate-400 text-center">
+                Respuesta rápida • Atención personalizada
+              </p>
+
             </div>
-
-            <div className="flex justify-between border-b pb-3">
-              <span className="font-semibold">Kilometraje</span>
-              <span>{vehicle.mileageKm.toLocaleString("es-UY")} Km</span>
-            </div>
-
-            <div className="flex justify-between border-b pb-3">
-              <span className="font-semibold">Combustible</span>
-              <span>{vehicle.fuel}</span>
-            </div>
-
-            <div className="flex justify-between border-b pb-3">
-              <span className="font-semibold">Transmisión</span>
-              <span>{vehicle.transmission}</span>
-            </div>
-
-            <div className="flex justify-between">
-              <span className="font-semibold">Estado</span>
-              <span className="capitalize">{vehicle.status}</span>
-            </div>
-
-            <a
-              href={`https://wa.me/59898153089?text=Hola%20quiero%20información%20sobre%20${encodeURIComponent(vehicle.name)}`}
-              target="_blank"
-              rel="noreferrer"
-              className="mt-8 inline-block w-full text-center rounded-full bg-red-600 px-6 py-4 text-lg font-bold text-white transition hover:bg-red-500 hover:scale-105"
-            >
-              Consultar por WhatsApp
-            </a>
 
           </div>
 
